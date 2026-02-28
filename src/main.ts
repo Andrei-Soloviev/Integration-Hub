@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+<<<<<<< HEAD
 import * as swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import { AppModule } from './app.module';
@@ -13,5 +14,12 @@ async function bootstrap() {
 
   // Запуск приложения
   await _app.listen(process.env.PORT ?? 3000);
+=======
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  await app.listen(process.env.PORT ?? 3000);
+>>>>>>> 49bfc567896079074ff003e1f37e7fe8aec9d189
 }
 bootstrap();
