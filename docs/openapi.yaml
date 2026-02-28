@@ -1,0 +1,114 @@
+openapi: 3.0.4
+info:
+  title: IntegrationHub
+  description: Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.
+  version: 0.1.0
+
+contact:
+  name: Developer
+  email: andrei.solowiew122295@gmail.com
+
+paths:
+  /integrations:
+    get:
+      summary: List of integrations.
+      description: Returns a list of configured integrations that define webhook processing and delivery rules.
+      responses:
+        '200': # status code
+          description: Successfully retrieved the list of integrations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: # ID
+                      type: integer
+                      description: 'ID'
+                      required: true
+                      example: 1
+                    name: # Имя
+                      type: string
+                      description: 'name'
+                      required: true
+                      example: 'From source.ru to target.ru'
+                    # 1. Кто отправляет
+                    sourceUrl: # URL источника
+                      type: string
+                      description: 'URL where webhooks are sent from'
+                      required: false
+                      example: 'https:/source.ru'
+                    authValidation: # Валидация аутентификации
+                      type: object
+                      description: 'The parameters used to verify the correctness of webhooks in terms of authentication'
+                      required: false
+                      properties:
+                        authType: # Тип аутентификации
+                          type: string
+                          description: 'Type of authentication: api_key, bearer'
+                          example: 'api_key'
+                          enum: [api_key, bearer]
+                        authConfig: # Конфиг для валидации аутентификации
+                          type: object
+                          description: 'The configuration according to which the correctness of authentication data is checked'
+                          properties:
+                            source: # Откуда берем данные (заголовок или запрос)
+                              type: string
+                              description: 'Source of data. Header or query param'
+                              example: 'query'
+                              enum: [header, query]
+                            name: # Имя (заголовка или параметра запроса)
+                              type: string
+                              description: 'Name of header or query param'
+                              example: 'key'
+                            value: # Значение
+                              type: string
+                              description: 'Value'
+                              example: 'a13f4'
+                    # 2. Куда отправлять
+                    targetUrl: # URL, куда отправляем
+                      type: string
+                      description: 'The URL where the webhooks will be sent'
+                      example: 'https:/target.ru'
+                    httpMethod: # HTTP-метод, которым отправляем
+                      type: string
+                      enum: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
+                      description: 'HTTP-method, which use for sending webhooks'
+                      example: 'POST'
+                    headers: # Массив заголовков, который отправляем
+                      type: array
+                      description: 'Array of headers, which send with webhooks'
+                      required: false
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: 'Name of header'
+                            example: 'Authentication'
+                          value:
+                            type: string
+                            description: 'Value of header'
+                            example: 'Bearer 135533'
+                    # 3. Политика доставки
+                    maxRetryCount: # max retry count
+                      type: number
+                      description: "Define quantity of retry if webhook don't be delivered"
+                      example: 4
+                    backoffStrategy: # Backoff-стратегия
+                      type: string
+                      description: 'Strategy for repeating operations in case of failure'
+                      enum: [fixed, exponential]
+                      example: 'fixed'
+                    deadLetterRule: # dead-letter правило
+                      type: string
+                      description: "Rule of processing of don't delivered webhooks"
+                      enum: [value1, value2]
+                      example: 'value1'
+                    # 4. Состояние
+                    isActive: # активна / отключена
+                      type: boolean
+                      description: 'Active or not'
+                      example: true
+        
