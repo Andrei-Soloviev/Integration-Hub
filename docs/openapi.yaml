@@ -14,7 +14,7 @@ paths:
       summary: List of integrations.
       description: Returns a list of configured integrations that define webhook processing and delivery rules.
       responses:
-        '200': # status code
+        200: # status code
           description: Successfully retrieved the list of integrations
           content:
             application/json:
@@ -25,72 +25,72 @@ paths:
                   properties:
                     id: # ID
                       type: integer
-                      description: 'ID'
+                      description: ID
                       required: true
                       example: 1
                     name: # Имя
                       type: string
-                      description: 'name'
+                      description: name
                       required: true
-                      example: 'From source.ru to target.ru'
+                      example: From source.ru to target.ru
                     # 1. Кто отправляет
                     sourceUrl: # URL источника
                       type: string
-                      description: 'URL where webhooks are sent from'
+                      description: URL where webhooks are sent from
                       required: false
-                      example: 'https:/source.ru'
+                      example: https:/source.ru
                     authValidation: # Валидация аутентификации
                       type: object
-                      description: 'The parameters used to verify the correctness of webhooks in terms of authentication'
+                      description: The parameters used to verify the correctness of webhooks in terms of authentication
                       required: false
                       properties:
                         authType: # Тип аутентификации
                           type: string
                           description: 'Type of authentication: api_key, bearer'
-                          example: 'api_key'
+                          example: api_key
                           enum: [api_key, bearer]
                         authConfig: # Конфиг для валидации аутентификации
                           type: object
-                          description: 'The configuration according to which the correctness of authentication data is checked'
+                          description: The configuration according to which the correctness of authentication data is checked
                           properties:
                             source: # Откуда берем данные (заголовок или запрос)
                               type: string
-                              description: 'Source of data. Header or query param'
-                              example: 'query'
+                              description: Source of data. Header or query param
+                              example: query
                               enum: [header, query]
                             name: # Имя (заголовка или параметра запроса)
                               type: string
-                              description: 'Name of header or query param'
-                              example: 'key'
+                              description: Name of header or query param
+                              example: key
                             value: # Значение
                               type: string
-                              description: 'Value'
-                              example: 'a13f4'
+                              description: Value
+                              example: a13f4
                     # 2. Куда отправлять
                     targetUrl: # URL, куда отправляем
                       type: string
-                      description: 'The URL where the webhooks will be sent'
-                      example: 'https:/target.ru'
+                      description: The URL where the webhooks will be sent
+                      example: https:/target.ru
                     httpMethod: # HTTP-метод, которым отправляем
                       type: string
                       enum: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
-                      description: 'HTTP-method, which use for sending webhooks'
-                      example: 'POST'
+                      description: HTTP-method, which use for sending webhooks
+                      example: POST
                     headers: # Массив заголовков, который отправляем
                       type: array
-                      description: 'Array of headers, which send with webhooks'
+                      description: Array of headers, which send with webhooks
                       required: false
                       items:
                         type: object
                         properties:
                           name:
                             type: string
-                            description: 'Name of header'
-                            example: 'Authentication'
+                            description: Name of header
+                            example: Authentication
                           value:
                             type: string
-                            description: 'Value of header'
-                            example: 'Bearer 135533'
+                            description: Value of header
+                            example: Bearer 135533
                     # 3. Политика доставки
                     maxRetryCount: # max retry count
                       type: number
@@ -98,17 +98,69 @@ paths:
                       example: 4
                     backoffStrategy: # Backoff-стратегия
                       type: string
-                      description: 'Strategy for repeating operations in case of failure'
+                      description: Strategy for repeating operations in case of failure
                       enum: [fixed, exponential]
-                      example: 'fixed'
+                      example: fixed
                     deadLetterRule: # dead-letter правило
                       type: string
                       description: "Rule of processing of don't delivered webhooks"
                       enum: [value1, value2]
-                      example: 'value1'
+                      example: value1
                     # 4. Состояние
                     isActive: # активна / отключена
                       type: boolean
-                      description: 'Active or not'
+                      description: Active or not
                       example: true
-        
+        400:
+          description: Incorrect query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error400'
+        409:
+          description: Conflict exception
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: This name already exist
+                error: Conflict
+                statusCode: 409
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Error in DB
+                error: Internal Server Error
+                statusCode: 500
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+        statusCode:
+          type: number
+    Error400:
+      type: object
+      properties:
+        message:
+          type: array
+          description: Array of error messages
+          items:
+            type: string
+            example: name must be string
+        error:
+          type: string
+          default: Bad request
+        statusCode:
+          type: number
+          default: 400
