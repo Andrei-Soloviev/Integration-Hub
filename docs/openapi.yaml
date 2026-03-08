@@ -1,12 +1,11 @@
 openapi: 3.0.4
 info:
   title: IntegrationHub
-  description: Optional multiline or single-line description in [CommonMark](http://commonmark.org/help/) or HTML.
+  description: Integration Hub is an integration management service that allows integration management and guaranteed delivery of events between systems.
   version: 0.1.0
-
-contact:
-  name: Developer
-  email: andrei.solowiew122295@gmail.com
+  contact:
+    name: Developer
+    email: andrei.solowiew122295@gmail.com
 
 paths:
   /integrations:
@@ -14,7 +13,7 @@ paths:
       summary: List of integrations.
       description: Returns a list of configured integrations that define webhook processing and delivery rules.
       responses:
-        200: # status code
+        200:
           description: Successfully retrieved the list of integrations
           content:
             application/json:
@@ -25,22 +24,65 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BadRequestError'
-        409:
-          description: Conflict exception
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConflictError'
+                $ref: '#/components/schemas/ErrorBadRequest'
         500:
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InternalServerError'
+                $ref: '#/components/schemas/ErrorInternalServer'
+  /integrations/{id}:
+    get:
+      summary: Integration by ID
+      description: Returns the integration configuration by its ID..
+      parameters:
+        - name: id
+          in: path
+          description: Integration ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Successfully retrieved the integration by his ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+        400:
+          description: Incorrect query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBadRequest'
+        404:
+          description: Integration with this ID not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInternalServer'
 
 components:
   schemas:
+    Header:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of header
+          example: Authentication
+        value:
+          type: string
+          description: Value of header
+          example: Bearer 135533
+
     Integration:
       type: object
       properties:
@@ -56,11 +98,15 @@ components:
         # 1. Кто отправляет
         sourceUrl: # URL источника
           type: string
+          format: url
           description: URL where webhooks are sent from
-          example: https:/source.ru
+          example: https://source.ru
         authValidation: # Валидация аутентификации
           type: object
           description: The parameters used to verify the correctness of webhooks in terms of authentication
+          required:
+            - authType
+            - authConfig
           properties:
             authType: # Тип аутентификации
               type: string
@@ -84,11 +130,16 @@ components:
                   type: string
                   description: Value
                   example: a13f4
+              required:
+                - source
+                - name
+                - value
         # 2. Куда отправлять
         targetUrl: # URL, куда отправляем
           type: string
+          format: url
           description: The URL where the webhooks will be sent
-          example: https:/target.ru
+          example: https://target.ru
         httpMethod: # HTTP-метод, которым отправляем
           type: string
           enum: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
@@ -98,20 +149,12 @@ components:
           type: array
           description: Array of headers, which send with webhooks
           items:
-            type: object
-            properties:
-              name:
-                type: string
-                description: Name of header
-                example: Authentication
-              value:
-                type: string
-                description: Value of header
-                example: Bearer 135533
+            $ref: '#/components/schemas/Header'
+
         # 3. Политика доставки
         maxRetryCount: # max retry count
-          type: number
-          description: "Define quantity of retry if webhook don't be delivered"
+          type: integer
+          description: Defines the number of retry attempts if webhook delivery fails
           example: 4
         backoffStrategy: # Backoff-стратегия
           type: string
@@ -120,14 +163,26 @@ components:
           example: fixed
         deadLetterRule: # dead-letter правило
           type: string
-          description: "Rule of processing of don't delivered webhooks"
-          enum: [value1, value2]
-          example: value1
+          description: Rule for processing undelivered webhooks
+          enum: [retry, discard]
+          example: discard
         # 4. Состояние
         isActive: # активна / отключена
           type: boolean
           description: Active or not
           example: true
+        # createdAt and updatedAt
+        createdAt:
+          type: string
+          format: date-time
+          example: '2025-03-10T12:45:00Z'
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2025-03-10T12:45:00Z'
+          readOnly: true
+
       required:
         - name
         - targetUrl
@@ -136,11 +191,18 @@ components:
         - backoffStrategy
         - deadLetterRule
         - isActive
+        - sourceUrl
 
     IntegrationList:
-      type: array
-      items:
-        $ref: '#/components/schemas/Integration'
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Integration'
+        total:
+          type: integer
+          example: 24
 
     Error:
       type: object
@@ -155,7 +217,7 @@ components:
         statusCode:
           type: number
           description: HTTP status code.
-    BadRequestError:
+    ErrorBadRequest:
       description: Bad request
       allOf:
         - $ref: '#/components/schemas/Error'
@@ -174,7 +236,19 @@ components:
               default: Bad request
             statusCode:
               default: 400
-    ConflictError:
+    ErrorNotFound:
+      description: NotFound
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            message:
+              example: Element with this ID not found
+            error:
+              default: Not Found
+            statusCode:
+              default: 404
+    ErrorConflict:
       description: Conflict
       allOf:
         - $ref: '#/components/schemas/Error'
@@ -186,7 +260,7 @@ components:
               default: Conflict
             statusCode:
               default: 409
-    InternalServerError:
+    ErrorInternalServer:
       description: Internal server error
       allOf:
         - $ref: '#/components/schemas/Error'
