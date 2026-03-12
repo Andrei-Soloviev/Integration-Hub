@@ -31,10 +31,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
+    post:
+      summary: Create new Integration
+      description: Create new Integration.
+      requestBody:
+        description: Data of new Integration
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntegrationCreateRequestBody'
+      responses:
+        201:
+          description: Successfully created the integration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+        400:
+          description: Incorrect query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBadRequest'
+        409:
+          description: Integration with this name is already exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorConflict'
+
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInternalServer'
+
   /integrations/{id}:
     get:
       summary: Integration by ID
-      description: Returns the integration configuration by its ID..
+      description: Returns the integration configuration by its ID.
       parameters:
         - name: id
           in: path
@@ -82,8 +119,11 @@ components:
           type: string
           description: Value of header
           example: Bearer 135533
+      required:
+        - name
+        - value
 
-    Integration:
+    IntegrationBase:
       type: object
       properties:
         id: # ID
@@ -98,7 +138,7 @@ components:
         # 1. Кто отправляет
         sourceUrl: # URL источника
           type: string
-          format: url
+          format: uri
           description: URL where webhooks are sent from
           example: https://source.ru
         authValidation: # Валидация аутентификации
@@ -137,7 +177,7 @@ components:
         # 2. Куда отправлять
         targetUrl: # URL, куда отправляем
           type: string
-          format: url
+          format: uri
           description: The URL where the webhooks will be sent
           example: https://target.ru
         httpMethod: # HTTP-метод, которым отправляем
@@ -150,7 +190,6 @@ components:
           description: Array of headers, which send with webhooks
           items:
             $ref: '#/components/schemas/Header'
-
         # 3. Политика доставки
         maxRetryCount: # max retry count
           type: integer
@@ -183,7 +222,11 @@ components:
           example: '2025-03-10T12:45:00Z'
           readOnly: true
 
+    Integration:
+      allOf:
+        - $ref: '#/components/schemas/IntegrationBase'
       required:
+        - id
         - name
         - targetUrl
         - httpMethod
@@ -192,6 +235,8 @@ components:
         - deadLetterRule
         - isActive
         - sourceUrl
+        - createdAt
+        - updatedAt
 
     IntegrationList:
       type: object
@@ -203,6 +248,23 @@ components:
         total:
           type: integer
           example: 24
+      required:
+        - items
+        - total
+
+    IntegrationCreateRequestBody:
+      description: Request body of POST /integrations
+      allOf:
+        - $ref: '#/components/schemas/IntegrationBase'
+        - type: object
+          required:
+            - name
+            - targetUrl
+            - httpMethod
+            - maxRetryCount
+            - backoffStrategy
+            - deadLetterRule
+            - sourceUrl
 
     Error:
       type: object
