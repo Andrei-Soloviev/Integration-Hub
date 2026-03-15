@@ -77,12 +77,13 @@ paths:
           in: path
           description: Integration ID
           required: true
+          example: 1
           schema:
             type: integer
             format: int64
       responses:
         200:
-          description: Successfully retrieved the integration by his ID
+          description: Successfully retrieved the integration
           content:
             application/json:
               schema:
@@ -99,6 +100,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorNotFound'
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInternalServer'
+    patch:
+      summary: Update integration
+      description: Partially updates integration configuration.
+      parameters:
+        - in: path
+          name: id
+          description: The integration ID
+          required: true
+          example: 1
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntegrationUpdateRequestBody'
+      responses:
+        200:
+          description: Successfully patched integration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Integration'
+        400:
+          description: Incorrect query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBadRequest'
+        404:
+          description: Integration with this ID not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
+        409:
+          description: Integration with this name is already exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorConflict'
         500:
           description: Internal server error
           content:
@@ -126,11 +176,6 @@ components:
     IntegrationBase:
       type: object
       properties:
-        id: # ID
-          type: integer
-          description: ID
-          readOnly: true
-          example: 1
         name: # Имя
           type: string
           description: name
@@ -195,6 +240,7 @@ components:
           type: integer
           description: Defines the number of retry attempts if webhook delivery fails
           example: 4
+          minimum: 0
         backoffStrategy: # Backoff-стратегия
           type: string
           description: Strategy for repeating operations in case of failure
@@ -210,21 +256,31 @@ components:
           type: boolean
           description: Active or not
           example: true
-        # createdAt and updatedAt
-        createdAt:
-          type: string
-          format: date-time
-          example: '2025-03-10T12:45:00Z'
-          readOnly: true
-        updatedAt:
-          type: string
-          format: date-time
-          example: '2025-03-10T12:45:00Z'
-          readOnly: true
 
     Integration:
       allOf:
+        - type: object
+          properties:
+            id: # ID
+              type: integer
+              description: ID
+              readOnly: true
+              example: 1
+            test:
+              type: string
         - $ref: '#/components/schemas/IntegrationBase'
+        - type: object
+          properties:
+            createdAt:
+              type: string
+              format: date-time
+              example: '2025-03-10T12:45:00Z'
+              readOnly: true
+            updatedAt:
+              type: string
+              format: date-time
+              example: '2025-03-10T12:45:00Z'
+              readOnly: true
       required:
         - id
         - name
@@ -265,6 +321,12 @@ components:
             - backoffStrategy
             - deadLetterRule
             - sourceUrl
+
+    IntegrationUpdateRequestBody:
+      description: Request body of PATCH /integrations
+      allOf:
+        - $ref: '#/components/schemas/IntegrationBase'
+        - type: object
 
     Error:
       type: object
