@@ -12,6 +12,24 @@ paths:
     get:
       summary: List of integrations.
       description: Returns a list of configured integrations that define webhook processing and delivery rules.
+      parameters:
+        - in: query
+          name: page
+          description: Page number (starting from 1)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - in: query
+          name: limit
+          description: Page number (starting from 1)
+
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
       responses:
         200:
           description: Successfully retrieved the list of integrations
@@ -32,10 +50,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
     post:
-      summary: Create new Integration
-      description: Create new Integration.
+      summary: Create new integration
+      description: Create new integration.
       requestBody:
-        description: Data of new Integration
+        description: Data of new integration
         required: true
         content:
           application/json:
@@ -126,7 +144,7 @@ paths:
               $ref: '#/components/schemas/IntegrationUpdateRequestBody'
       responses:
         200:
-          description: Successfully patched integration
+          description: Successfully updated the integration
           content:
             application/json:
               schema:
@@ -149,6 +167,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorConflict'
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInternalServer'
+    delete:
+      summary: Delete integration
+      description: Delete integration by its ID.
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: integer
+          required: true
+          example: 1
+          description: The integration ID
+      responses:
+        204:
+          description: Integration successfully deleted
+        400:
+          description: Incorrect query param
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBadRequest'
+        404:
+          description: Integration with this ID not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorNotFound'
         500:
           description: Internal server error
           content:
@@ -266,8 +316,6 @@ components:
               description: ID
               readOnly: true
               example: 1
-            test:
-              type: string
         - $ref: '#/components/schemas/IntegrationBase'
         - type: object
           properties:
