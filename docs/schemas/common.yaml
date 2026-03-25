@@ -1,0 +1,85 @@
+components:
+  schemas:
+    Header:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of header
+          example: Authentication
+        value:
+          type: string
+          description: Value of header
+          example: Bearer 135533
+      required:
+        - name
+        - value
+
+    Error:
+      type: object
+      description: Standard error shape.
+      properties:
+        message:
+          type: string
+          description: Error message.
+        error:
+          type: string
+          description: Type of Error.
+        statusCode:
+          type: number
+          description: HTTP status code.
+    ErrorBadRequest:
+      description: Bad request
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            message:
+              oneOf:
+                - type: string
+                  example: id must be integer
+                - type: array
+                  description: Array of error messages
+                  items:
+                    type: string
+              example: ['name must be a string', 'name should not be empty']
+            error:
+              default: Bad request
+            statusCode:
+              default: 400
+    ErrorNotFound:
+      description: NotFound
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            message:
+              example: Element with this ID not found
+            error:
+              default: Not Found
+            statusCode:
+              default: 404
+    ErrorConflict:
+      description: Conflict
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            message:
+              example: 'Integration with this name is already exist'
+            error:
+              default: Conflict
+            statusCode:
+              default: 409
+    ErrorInternalServer:
+      description: Internal server error
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            message:
+              example: Too many connections
+            error:
+              default: Internal server error
+            statusCode:
+              default: 500

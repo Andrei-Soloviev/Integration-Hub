@@ -1,0 +1,195 @@
+Integrations:
+  get:
+    summary: List of integrations.
+    description: 'Returns a list of configured integrations that define webhook processing and delivery rules.'
+    parameters:
+      - in: query
+        name: page
+        description: Page number (starting from 1)
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - in: query
+        name: limit
+        description: Page number (starting from 1)
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+    responses:
+      '200':
+        description: Successfully retrieved the list of integrations
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/integration.yaml#/components/schemas/IntegrationList'
+      '400':
+        description: Incorrect query
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorBadRequest'
+      '500':
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'
+
+  post:
+    summary: Create new integration
+    description: Create new integration.
+    requestBody:
+      description: Data of new integration
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/integration.yaml#/components/schemas/IntegrationCreateRequestBody'
+    responses:
+      201:
+        description: Successfully created the integration
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/integration.yaml#/components/schemas/Integration'
+      400:
+        description: Incorrect query
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorBadRequest'
+      409:
+        description: Integration with this name is already exist
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorConflict'
+      500:
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'
+
+IntegrationById:
+  get:
+    summary: Integration by ID
+    description: Returns the integration configuration by its ID.
+    parameters:
+      - name: id
+        in: path
+        description: Integration ID
+        required: true
+        example: 1
+        schema:
+          type: integer
+          format: int64
+    responses:
+      200:
+        description: Successfully retrieved the integration
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/integration.yaml#/components/schemas/Integration'
+      400:
+        description: Incorrect query
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorBadRequest'
+      404:
+        description: Integration with this ID not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorNotFound'
+      500:
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'
+  patch:
+    summary: Update integration
+    description: Partially updates integration configuration.
+    parameters:
+      - in: path
+        name: id
+        description: The integration ID
+        required: true
+        example: 1
+        schema:
+          type: integer
+          minimum: 1
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/integration.yaml#/components/schemas/IntegrationUpdateRequestBody'
+    responses:
+      200:
+        description: Successfully updated the integration
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/integration.yaml#/components/schemas/Integration'
+      400:
+        description: Incorrect query
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorBadRequest'
+      404:
+        description: Integration with this ID not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorNotFound'
+      409:
+        description: Integration with this name is already exist
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorConflict'
+      500:
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'
+  delete:
+    summary: Delete integration
+    description: Delete integration by its ID.
+    parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+        example: 1
+        description: The integration ID
+    responses:
+      204:
+        description: Integration successfully deleted
+      400:
+        description: Incorrect query param
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorBadRequest'
+      404:
+        description: Integration with this ID not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorNotFound'
+      500:
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'

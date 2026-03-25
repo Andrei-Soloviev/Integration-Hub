@@ -1,17 +1,26 @@
+import SwaggerParser from '@apidevtools/swagger-parser';
 import { NestFactory } from '@nestjs/core';
+import * as path from 'path';
 import * as swaggerUi from 'swagger-ui-express';
-import YAML from 'yamljs';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const _app = await NestFactory.create(AppModule);
 
-  // Создание документа Swagger
-  const _swaggerDocument = YAML.load('docs/openapi.yaml');
-  // Создание интерфейса Swagger
-  _app.use('/docs', swaggerUi.serve, swaggerUi.setup(_swaggerDocument));
+  try {
+    // 1. Указываем путь к главному файлу OpenAPI
+    const openApiPath = path.resolve(process.cwd(), 'docs/openapi.yaml');
+    // 2. Собираем все файлы в один объект, разрешая все $ref ссылки
+    const swaggerDocument = await SwaggerParser.bundle(openApiPath);
 
-  // Запуск приложения
-  await _app.listen(process.env.PORT ?? 3000);
+    // 3. Создание и настройка интерфейса Swagger UI
+    _app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  } catch (error) {
+    console.error('Failed to generate Swagger documentation', error);
+  }
+
+  const port = process.env.PORT || 3000;
+  await _app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
 }
 bootstrap();
