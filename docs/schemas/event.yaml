@@ -1,0 +1,110 @@
+components:
+  schemas:
+    Event:
+      type: object
+      # Обработанный нашим приложением rawBody
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: Id of event
+          minimum: 1
+          readOnly: true
+        # 1. Бизнес-данные
+        payload:
+          type: object
+          description: rawBody after transformation
+          example:
+            { 'ticketId': 123, 'title': 'Barrier is broken', 'status': 'open' }
+          additionalProperties: true # For flexibility
+        rawBody:
+          type: object
+          description: Body of webhook
+          example: { 'id': 123, 'subject': 'Barrier is broken', 'state': 1 }
+          additionalProperties: true # For flexibility
+        # 2. Связь
+        integrationId:
+          type: integer
+          description: ID of integration
+          minimum: 1
+          example: 1
+        # 3. Статус доставки
+        status:
+          type: string
+          enum: [pending, processing, delivered, failed, dead_letter]
+          description: Delivery status
+          example: pending
+        # 4. Попытки
+        attemptCount:
+          type: integer
+          description: Attempt count
+          minimum: 0
+          example: 1
+        lastAttemptAt:
+          type: string
+          format: date-time
+          description: Date and time of last attempt
+          example: 2026-03-28T15:30:45.123Z
+        nextRetryAt:
+          type: string
+          format: date-time
+          description: Date and time of next retry
+          example: 2026-03-28T16:30:45.123Z
+        # 5. История доставки
+        deliveryAttempts:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryAttempt'
+          description: Logs of deliveries attempts
+        # UpdatedAt
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date and time when info about event was updated
+          example: 2026-03-28T16:30:45.123Z
+
+    DeliveryAttempt:
+      type: object
+      properties:
+        attempt:
+          type: integer
+          description: Number of attempt
+          example: 1
+        timestamp:
+          type: string
+          format: date-time
+          description: Date and time of attempt in UTC
+          example: 2026-03-28T15:30:45.123Z
+        status:
+          type: string
+          enum: [failed, delivered, retrying]
+          description: Status of attempt
+          example: failed
+        httpStatus:
+          type: integer
+          description: Http status of response to attempt
+          example: 500
+        errorMessage:
+          type: string
+          description: Message of error. Present only if status = failed
+          nullable: true
+          example: Timeout
+        durationMs:
+          type: integer
+          description: Duration of request in ms
+          example: 1200
+        responseBody:
+          type: string
+          description: Body of response. May be cropped or missing.
+          nullable: true
+          example: Timeout
+      example:
+        {
+          'attempt': 1,
+          'timestamp': '2025-03-10T12:00:00Z',
+          'status': 'failed',
+          'httpStatus': 500,
+          'errorMessage': 'Timeout',
+          'durationMs': 1200,
+          'responseBody': 'Timeout',
+        }
