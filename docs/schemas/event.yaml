@@ -1,15 +1,9 @@
 components:
   schemas:
-    Event:
+    EventBase:
       type: object
       # Обработанный нашим приложением rawBody
       properties:
-        id:
-          type: integer
-          example: 1
-          description: Id of event
-          minimum: 1
-          readOnly: true
         # 1. Бизнес-данные
         payload:
           type: object
@@ -56,12 +50,15 @@ components:
           items:
             $ref: '#/components/schemas/DeliveryAttempt'
           description: Logs of deliveries attempts
-        # UpdatedAt
-        updatedAt:
-          type: string
-          format: date-time
-          description: Date and time when info about event was updated
-          example: 2026-03-28T16:30:45.123Z
+      required:
+        - payload
+        - rawBody
+        - integrationId
+        - status
+        - attemptCount
+        - lastAttemptAt
+        - nextRetryAt
+        - deliveryAttempts
 
     DeliveryAttempt:
       type: object
@@ -108,3 +105,49 @@ components:
           'durationMs': 1200,
           'responseBody': 'Timeout',
         }
+      required:
+        - attempt
+        - timestamp
+        - status
+        - httpStatus
+        - durationMs
+
+    Event:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+              description: Id of event
+              minimum: 1
+              readOnly: true
+          required:
+            - id
+        - $ref: '#/components/schemas/EventBase'
+        - type: object
+          properties:
+            updatedAt:
+              type: string
+              format: date-time
+              description: Date and time when info about event was updated
+              example: 2026-03-28T16:30:45.123Z
+          required:
+            - updatedAt
+
+    EventList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+          descriptions: Events in list
+        total:
+          type: integer
+          descriptions: Quantity of events in list
+          example: 1
+          minimum: 0
+      required:
+        - items
+        - total

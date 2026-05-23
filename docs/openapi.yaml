@@ -12,3 +12,7 @@ paths:
     $ref: './paths/integration.yaml#/Integrations'
   /integrations/{id}:
     $ref: './paths/integration.yaml#/IntegrationById'
+  /events:
+    $ref: './paths/event.yaml#/Events'
+  /events/{id}:
+    $ref: './paths/event.yaml#/EventById'

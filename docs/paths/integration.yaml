@@ -2,6 +2,8 @@ Integrations:
   get:
     summary: List of integrations.
     description: 'Returns a list of configured integrations that define webhook processing and delivery rules.'
+    tags:
+      - Integrations
     parameters:
       - in: query
         name: page
@@ -9,10 +11,11 @@ Integrations:
         schema:
           type: integer
           minimum: 1
+          example: 1
           default: 1
       - in: query
         name: limit
-        description: Page number (starting from 1)
+        description: Quantity of integrations in page (starting from 1, ending to 100)
         schema:
           type: integer
           minimum: 1
@@ -41,6 +44,8 @@ Integrations:
   post:
     summary: Create new integration
     description: Create new integration.
+    tags:
+      - Integrations
     requestBody:
       description: Data of new integration
       required: true
@@ -78,6 +83,8 @@ IntegrationById:
   get:
     summary: Integration by ID
     description: Returns the integration configuration by its ID.
+    tags:
+      - Integrations
     parameters:
       - name: id
         in: path
@@ -115,6 +122,8 @@ IntegrationById:
   patch:
     summary: Update integration
     description: Partially updates integration configuration.
+    tags:
+      - Integrations
     parameters:
       - in: path
         name: id
@@ -164,6 +173,8 @@ IntegrationById:
   delete:
     summary: Delete integration
     description: Delete integration by its ID.
+    tags:
+      - Integrations
     parameters:
       - in: path
         name: id
