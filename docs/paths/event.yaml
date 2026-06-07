@@ -101,4 +101,16 @@ EventByIdRetry:
           application/json:
             schema:
               $ref: '../schemas/common.yaml#/components/schemas/ErrorBadRequest'
+      404:
+        description: Event not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorNotFound'
+      500:
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'
 
