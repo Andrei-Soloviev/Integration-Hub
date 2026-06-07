@@ -1,20 +1,5 @@
 components:
   schemas:
-    Header:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Name of header
-          example: Authentication
-        value:
-          type: string
-          description: Value of header
-          example: Bearer 135533
-      required:
-        - name
-        - value
-
     IntegrationBase:
       type: object
       properties:
@@ -26,58 +11,33 @@ components:
         sourceUrl: # URL источника
           type: string
           format: uri
-          description: URL where webhooks are sent from
+          description: URL where requests are sent from
           example: https://source.ru
-        authValidation: # Валидация аутентификации
-          type: object
-          description: The parameters used to verify the correctness of webhooks in terms of authentication
-          required:
-            - authType
-            - authConfig
-          properties:
-            authType: # Тип аутентификации
-              type: string
-              description: 'Type of authentication: api_key, bearer'
-              example: api_key
-              enum: [api_key, bearer]
-            authConfig: # Конфиг для валидации аутентификации
-              type: object
-              description: The configuration according to which the correctness of authentication data is checked
-              properties:
-                source: # Откуда берем данные (заголовок или запрос)
-                  type: string
-                  description: Source of data. Header or query param
-                  example: query
-                  enum: [header, query]
-                name: # Имя (заголовка или параметра запроса)
-                  type: string
-                  description: Name of header or query param
-                  example: key
-                value: # Значение
-                  type: string
-                  description: Value
-                  example: a13f4
-              required:
-                - source
-                - name
-                - value
-        # 2. Куда отправлять
+        # 2. Параметры, которые извлекаем из запроса к хабу и перенаправляем на targetUrl
+        extractParams:
+          type: array
+          description: Parameters that we extract from the request to the hub and redirect to targetUrl
+          example: ["issueId", "statusId", "exampleParam"]
+          items:
+            type: string
+        # 3. Куда отправлять
         targetUrl: # URL, куда отправляем
           type: string
           format: uri
-          description: The URL where the webhooks will be sent
-          example: https://target.ru
-        httpMethod: # HTTP-метод, которым отправляем
+          description: The URL where the requests will be sent
+          example: https://target.ru/issues/{issueId}/statuses/{statusId}?example={exampleParam}
+        targetHttpMethod: # HTTP-метод, которым отправляем
           type: string
           enum: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
-          description: HTTP-method, which use for sending webhooks
+          description: HTTP-method, which use for sending requests
           example: POST
-        headers: # Массив заголовков, который отправляем
+        targetHeaders: # Массив заголовков, которые будет браться из запроса на хаб и перенаправляться на источник
           type: array
-          description: Array of headers, which send with webhooks
+          description: An array of headers that will be taken from the request to the hub and redirected to the source
+          example: ["Authentication", "CustomHeader2"]
           items:
-            $ref: '../schemas/common.yaml#/components/schemas/Header'
-        # 3. Политика доставки
+            type: string
+        # 4. Политика доставки
         maxRetryCount: # max retry count
           type: integer
           description: Defines the number of retry attempts if webhook delivery fails
@@ -90,14 +50,19 @@ components:
           example: fixed
         deadLetterRule: # dead-letter правило
           type: string
-          description: Rule for processing undelivered webhooks
+          description: Rule for processing undelivered requests
           enum: [retry, discard]
           example: discard
-        # 4. Состояние
+        # 5. Состояние
         isActive: # активна / отключена
           type: boolean
           description: Active or not
           example: true
+        # 6. Путь по которому источник будет отправлять запросы в хаб
+        incomingPath:
+          type: string
+          description: Defines the path that the source will use to send requests to the hub
+          example: /requests/source/target/issues/{issueId}/statuses/{statusId}?example={exampleParam}
     Integration:
       allOf:
         - type: object
@@ -110,6 +75,11 @@ components:
         - $ref: '#/components/schemas/IntegrationBase'
         - type: object
           properties:
+            incomingUrl:
+              type: string
+              format: uri
+              description: URL that the source will use to send requests to the hub. Generated by the hub automatically.
+              example: https://integration.hub/requests/source/target/issues/{issueId}/statuses/{statusId}?example={exampleParam}
             createdAt:
               type: string
               format: date-time
@@ -124,11 +94,15 @@ components:
         - id
         - name
         - targetUrl
-        - httpMethod
+        - targetHttpMethod
+        - targetHeaders
         - maxRetryCount
         - backoffStrategy
         - deadLetterRule
         - isActive
+        - incomingPath
+        - incomingUrl
+        - extractParams
         - sourceUrl
         - createdAt
         - updatedAt
@@ -155,11 +129,12 @@ components:
           required:
             - name
             - targetUrl
-            - httpMethod
+            - targetHttpMethod
             - maxRetryCount
             - backoffStrategy
             - deadLetterRule
             - sourceUrl
+            - incomingPath
 
     IntegrationUpdateRequestBody:
       description: Request body of PATCH /integrations

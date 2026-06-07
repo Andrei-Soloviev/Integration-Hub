@@ -1,20 +1,5 @@
 components:
   schemas:
-    Header:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Name of header
-          example: Authentication
-        value:
-          type: string
-          description: Value of header
-          example: Bearer 135533
-      required:
-        - name
-        - value
-
     Error:
       type: object
       description: Standard error shape.

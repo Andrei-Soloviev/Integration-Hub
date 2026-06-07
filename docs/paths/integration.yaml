@@ -139,6 +139,7 @@ IntegrationById:
         application/json:
           schema:
             $ref: '../schemas/integration.yaml#/components/schemas/IntegrationUpdateRequestBody'
+            type: object
     responses:
       200:
         description: Successfully updated the integration

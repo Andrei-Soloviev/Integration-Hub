@@ -115,3 +115,23 @@ EventById:
             schema:
               $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'
 
+EventByIdRetry:
+  post:
+    summary: Start retry for event
+    description: Start retry for event.
+    tags:
+      - Events
+    responses:
+      200:
+        description: Event successfully retried
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/event.yaml#/components/schemas/Event'
+      400:
+        description: Incorrect path param
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorBadRequest'
+
