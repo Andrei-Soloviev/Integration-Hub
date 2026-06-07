@@ -16,5 +16,5 @@ paths:
     $ref: './paths/event.yaml#/Events'
   /events/{id}:
     $ref: './paths/event.yaml#/EventById'
-  /event/{id}/retry:
+  /events/{id}/retry:
     $ref: './paths/event.yaml#/EventByIdRetry'

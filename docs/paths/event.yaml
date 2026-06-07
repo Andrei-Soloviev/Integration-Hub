@@ -41,39 +41,6 @@ Events:
           application/json:
             schema:
               $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'
-  post:
-    summary: Create new event
-    description: Create new event.
-    tags:
-      - Events
-    requestBody:
-      description: Event data.
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: '../schemas/event.yaml#/components/schemas/EventBase'
-    responses:
-      201:
-        description: Successfully created the event
-        content:
-          application/json:
-            schema:
-              $ref: '../schemas/event.yaml#/components/schemas/Event'
-      400:
-        description: Incorrect query
-        content:
-          application/json:
-            schema:
-              $ref: '../schemas/common.yaml#/components/schemas/ErrorBadRequest'
-      500:
-        description: Internal server error
-        content:
-          application/json:
-            schema:
-              $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'
-
-
 
 EventById:
   get: 
