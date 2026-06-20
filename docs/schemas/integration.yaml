@@ -1,0 +1,129 @@
+components:
+  schemas:
+    IntegrationBase:
+      type: object
+      properties:
+        name: # Имя
+          type: string
+          description: name
+          example: From source.ru to target.ru
+        # 1. Кто отправляет
+        sourceUrl: # URL источника
+          type: string
+          format: uri
+          description: URL where requests are sent from
+          example: https://source.ru
+        # 2. Куда отправлять
+        targetUrl: # URL, куда отправляем
+          type: string
+          format: uri
+          description: The URL where the requests will be sent
+          example: https://target.ru/issues/{issueId}/statuses/{statusId}?example={exampleParam}
+        targetHttpMethod: # HTTP-метод, которым отправляем
+          type: string
+          enum: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
+          description: HTTP-method, which use for sending requests
+          example: POST
+        targetHeaders: # Массив заголовков, которые будет браться из запроса на хаб и перенаправляться на источник
+          type: array
+          description: An array of headers that will be taken from the request to the hub and redirected to the source
+          example: ["Authentication", "CustomHeader2"]
+          items:
+            type: string
+        # 3. Политика доставки
+        maxRetryCount: # max retry count
+          type: integer
+          description: Defines the number of retry attempts if webhook delivery fails
+          example: 4
+          minimum: 0
+        backoffStrategy: # Backoff-стратегия
+          type: string
+          description: Strategy for repeating operations in case of failure
+          enum: [fixed, exponential]
+          example: fixed
+        deadLetterRule: # dead-letter правило
+          type: string
+          description: Rule for processing undelivered requests
+          enum: [retry, discard]
+          example: discard
+        # 4. Состояние
+        isActive: # активна / отключена
+          type: boolean
+          description: Active or not
+          example: true
+        # 5. Путь по которому источник будет отправлять запросы в хаб
+        incomingPath:
+          type: string
+          description: Defines the path that the source will use to send requests to the hub
+          example: /requests/source/target/issues/{issueId}/statuses/{statusId}?example={exampleParam}
+    Integration:
+      allOf:
+        - type: object
+          properties:
+            id: # ID
+              type: integer
+              description: ID
+              readOnly: true
+              example: 1
+        - $ref: '#/components/schemas/IntegrationBase'
+        - type: object
+          properties:
+            createdAt:
+              type: string
+              format: date-time
+              example: '2025-03-10T12:45:00Z'
+              readOnly: true
+            updatedAt:
+              type: string
+              format: date-time
+              example: '2025-03-10T12:45:00Z'
+              readOnly: true
+      required:
+        - id
+        - name
+        - targetUrl
+        - targetHttpMethod
+        - targetHeaders
+        - maxRetryCount
+        - backoffStrategy
+        - deadLetterRule
+        - isActive
+        - incomingPath
+        - sourceUrl
+        - createdAt
+        - updatedAt
+
+    IntegrationList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Integration'
+        total:
+          type: integer
+          example: 24
+      required:
+        - items
+        - total
+
+    IntegrationCreateRequestBody:
+      description: Request body of POST /integrations
+      allOf:
+        - $ref: '#/components/schemas/IntegrationBase'
+        - type: object
+          required:
+            - name
+            - targetUrl
+            - targetHttpMethod
+            - maxRetryCount
+            - backoffStrategy
+            - deadLetterRule
+            - sourceUrl
+            - incomingPath
+
+    IntegrationUpdateRequestBody:
+      description: Request body of PATCH /integrations
+      allOf:
+        - $ref: '#/components/schemas/IntegrationBase'
+        - type: object

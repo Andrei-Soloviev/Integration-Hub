@@ -1,0 +1,116 @@
+Events:
+  get:
+    summary: List of events
+    description: Returns a list of events.
+    tags:
+      - Events
+    parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Number of page
+        example: 1
+        minimum: 1
+        default: 1
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Quantity of events in page (starting from 1, ending to 100)
+        example: 50
+        minimum: 1
+        maximum: 100
+        default: 20
+    responses:
+      200:
+        description: List of events
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/event.yaml#/components/schemas/EventList'
+      400:
+        description: Incorrect query
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorBadRequest'
+      500:
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'
+
+EventById:
+  get: 
+    summary: Event by ID
+    description: Returns a event by ID.
+    tags:
+      - Events
+    parameters:
+      - name: id
+        in: path
+        description: Event ID
+        required: true
+        schema:
+          type: integer
+          format: int64
+    responses:
+      200:
+        description: Event
+        content:
+          application/json:
+            schema:
+                $ref: "../schemas/event.yaml#/components/schemas/Event"
+      400:
+        description: Incorrect path param
+        content:
+          application/json:
+            schema:
+                $ref: "../schemas/common.yaml#/components/schemas/ErrorBadRequest"
+      404:
+        description: Event not found
+        content:
+          application/json:
+            schema:
+                $ref: "../schemas/common.yaml#/components/schemas/ErrorNotFound"
+      500:
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'
+
+EventByIdRetry:
+  post:
+    summary: Start retry for event
+    description: Start retry for event.
+    tags:
+      - Events
+    responses:
+      200:
+        description: Event successfully retried
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/event.yaml#/components/schemas/Event'
+      400:
+        description: Incorrect path param
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorBadRequest'
+      404:
+        description: Event not found
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorNotFound'
+      500:
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/common.yaml#/components/schemas/ErrorInternalServer'
+

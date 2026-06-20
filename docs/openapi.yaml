@@ -1,0 +1,20 @@
+openapi: 3.0.4
+info:
+  title: IntegrationHub
+  description: Integration Hub is an integration management service that allows integration management and guaranteed delivery of events between systems.
+  version: 0.1.0
+  contact:
+    name: Developer
+    email: andrei.solowiew122295@gmail.com
+
+paths:
+  /integrations:
+    $ref: './paths/integration.yaml#/Integrations'
+  /integrations/{id}:
+    $ref: './paths/integration.yaml#/IntegrationById'
+  /events:
+    $ref: './paths/event.yaml#/Events'
+  /events/{id}:
+    $ref: './paths/event.yaml#/EventById'
+  /events/{id}/retry:
+    $ref: './paths/event.yaml#/EventByIdRetry'
