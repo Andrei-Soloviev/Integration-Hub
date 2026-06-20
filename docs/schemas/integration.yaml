@@ -44,7 +44,7 @@ components:
         deadLetterRule: # dead-letter правило
           type: string
           description: Rule for processing undelivered requests
-          enum: [retry, discard]
+          enum: [dead_letter, discard]
           example: discard
         # 4. Состояние
         isActive: # активна / отключена
@@ -54,7 +54,7 @@ components:
         # 5. Путь по которому источник будет отправлять запросы в хаб
         incomingPath:
           type: string
-          description: Defines the path that the source will use to send requests to the hub
+          description: Relative path used by the source system to send requests to Integration Hub. Must be unique across integrations. Can contain path parameters and query parameters.
           example: /requests/source/target/issues/{issueId}/statuses/{statusId}?example={exampleParam}
     Integration:
       allOf:

@@ -2,19 +2,13 @@ components:
   schemas:
     EventBase:
       type: object
-      # Обработанный нашим приложением rawBody
       properties:
         # 1. Бизнес-данные
         payload:
           type: object
-          description: rawBody after transformation
+          description: Body of request or webhook
           example:
-            { 'ticketId': 123, 'title': 'Barrier is broken', 'status': 'open' }
-          additionalProperties: true # For flexibility
-        rawBody:
-          type: object
-          description: Body of webhook
-          example: { 'id': 123, 'subject': 'Barrier is broken', 'state': 1 }
+            { 'id': 123, 'title': 'Barrier is broken', 'status': 'open' }
           additionalProperties: true # For flexibility
         # 2. Связь
         integrationId:
@@ -39,11 +33,13 @@ components:
           format: date-time
           description: Date and time of last attempt
           example: 2026-03-28T15:30:45.123Z
+          nullable: true
         nextRetryAt:
           type: string
           format: date-time
           description: Date and time of next retry
           example: 2026-03-28T16:30:45.123Z
+          nullable: true
         # 5. История доставки
         deliveryAttempts:
           type: array
@@ -52,13 +48,9 @@ components:
           description: Logs of deliveries attempts
       required:
         - payload
-        - rawBody
         - integrationId
         - status
         - attemptCount
-        - lastAttemptAt
-        - nextRetryAt
-        - deliveryAttempts
 
     DeliveryAttempt:
       type: object
@@ -67,14 +59,14 @@ components:
           type: integer
           description: Number of attempt
           example: 1
-        timestamp:
+        attemptedAt:
           type: string
           format: date-time
           description: Date and time of attempt in UTC
           example: 2026-03-28T15:30:45.123Z
         status:
           type: string
-          enum: [failed, delivered, retrying]
+          enum: [failed, delivered]
           description: Status of attempt
           example: failed
         httpStatus:
@@ -98,7 +90,7 @@ components:
       example:
         {
           'attempt': 1,
-          'timestamp': '2025-03-10T12:00:00Z',
+          'attemptedAt': '2025-03-10T12:00:00Z',
           'status': 'failed',
           'httpStatus': 500,
           'errorMessage': 'Timeout',
@@ -107,7 +99,7 @@ components:
         }
       required:
         - attempt
-        - timestamp
+        - attemptedAt
         - status
         - httpStatus
         - durationMs
@@ -127,12 +119,18 @@ components:
         - $ref: '#/components/schemas/EventBase'
         - type: object
           properties:
+            createdAt:
+              type: string
+              format: date-time
+              description: Date and time when info about event was updated
+              example: 2026-03-28T16:30:45.123Z
             updatedAt:
               type: string
               format: date-time
               description: Date and time when info about event was updated
               example: 2026-03-28T16:30:45.123Z
           required:
+            - createdAt
             - updatedAt
 
     EventList:
@@ -142,10 +140,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Event'
-          descriptions: Events in list
+          description: Events in list
         total:
           type: integer
-          descriptions: Quantity of events in list
+          description: Quantity of events in list
           example: 1
           minimum: 0
       required:

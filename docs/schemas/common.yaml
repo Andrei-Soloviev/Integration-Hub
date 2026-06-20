@@ -11,7 +11,7 @@ components:
           type: string
           description: Type of Error.
         statusCode:
-          type: number
+          type: integer
           description: HTTP status code.
     ErrorBadRequest:
       description: Bad request
