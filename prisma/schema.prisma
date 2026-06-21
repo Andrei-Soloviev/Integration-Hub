@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum HttpMethods {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+}
+
+enum BackoffStrategy {
+  fixed
+  exponential
+}
+
+enum DeadLetterRule {
+  dead_letter
+  discard
+}
+
+enum StatusEvent {
+  pending
+  processing
+  delivered
+  failed
+  dead_letter
+}
+
+enum DeliveryAttemptStatus {
+  failed
+  delivered
+}
+
+model Integration {
+  id               Int             @id @default(autoincrement())
+  name             String          @unique @db.VarChar(250)
+  targetUrl        String          @map("target_url") @db.VarChar(250)
+  targetHttpMethod HttpMethods     @map("target_http_method")
+  targetHeaders    Json?           @map("target_headers")
+  maxRetryCount    Int             @default(5) @map("max_retry_count")
+  backoffStrategy  BackoffStrategy @map("backoff_strategy")
+  deadLetterRule   DeadLetterRule  @map("dead_letter_rule")
+  isActive         Boolean         @map("is_active")
+  incomingPath     String          @unique @map("incoming_path") @db.VarChar(250)
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  /// Cвязи(если есть)
+  events           Event[]
+
+  @@index([incomingPath])
+  @@map("integrations")
+}
+
+model Event {
+  id               Int               @id @default(autoincrement())
+  integrationId    Int               @map("integration_id")
+  payload          Json
+  status           StatusEvent       @default(pending)
+  attemptCount     Int               @default(0) @map("attempt_count")
+  lastAttemptAt    DateTime?         @map("last_attempt_at")
+  nextRetryAt      DateTime?         @map("next_retry_at")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  /// Связи (если есть)
+  integration      Integration       @relation(fields: [integrationId], references: [id])
+  deliveryAttempts DeliveryAttempt[]
+
+  @@index([nextRetryAt])
+  @@index([integrationId])
+  @@index([status])
+  @@map("events")
+}
+
+model DeliveryAttempt {
+  id           Int                   @id @default(autoincrement())
+  eventId      Int                   @map("event_id")
+  attempt      Int
+  attemptedAt  DateTime              @map("attempted_at")
+  status       DeliveryAttemptStatus
+  httpStatus   Int?                  @map("http_status")
+  errorMessage String?               @map("error_message")
+  durationMs   Int                   @map("duration_ms")
+  responseBody String?               @map("response_body")
+  /// Связи (если есть)
+  event        Event                 @relation(fields: [eventId], references: [id])
+
+  @@index([eventId])
+  @@map("delivery_attempt")
+}

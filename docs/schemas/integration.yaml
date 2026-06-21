@@ -7,13 +7,7 @@ components:
           type: string
           description: name
           example: From source.ru to target.ru
-        # 1. Кто отправляет
-        sourceUrl: # URL источника
-          type: string
-          format: uri
-          description: URL where requests are sent from
-          example: https://source.ru
-        # 2. Куда отправлять
+        # 1. Куда отправлять
         targetUrl: # URL, куда отправляем
           type: string
           format: uri
@@ -30,7 +24,7 @@ components:
           example: ["Authentication", "CustomHeader2"]
           items:
             type: string
-        # 3. Политика доставки
+        # 2. Политика доставки
         maxRetryCount: # max retry count
           type: integer
           description: Defines the number of retry attempts if webhook delivery fails
@@ -46,12 +40,12 @@ components:
           description: Rule for processing undelivered requests
           enum: [dead_letter, discard]
           example: discard
-        # 4. Состояние
+        # 3. Состояние
         isActive: # активна / отключена
           type: boolean
           description: Active or not
           example: true
-        # 5. Путь по которому источник будет отправлять запросы в хаб
+        # 4. Путь по которому источник будет отправлять запросы в хаб
         incomingPath:
           type: string
           description: Relative path used by the source system to send requests to Integration Hub. Must be unique across integrations. Can contain path parameters and query parameters.
@@ -83,13 +77,11 @@ components:
         - name
         - targetUrl
         - targetHttpMethod
-        - targetHeaders
         - maxRetryCount
         - backoffStrategy
         - deadLetterRule
         - isActive
         - incomingPath
-        - sourceUrl
         - createdAt
         - updatedAt
 
@@ -119,7 +111,6 @@ components:
             - maxRetryCount
             - backoffStrategy
             - deadLetterRule
-            - sourceUrl
             - incomingPath
 
     IntegrationUpdateRequestBody:
