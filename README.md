@@ -95,12 +95,119 @@ Integration Hub работает по принципу **асинхронног�
    - HTTP-метод: `targetMethod`
    - Тело: исходное тело запроса системы-источника (без изменений)
    - Заголовки: извлечённые на шаге 4
+   - Параметры запроса: см. раздел [Работа с параметрами запроса](#51-работа-с-параметрами-запроса)
 
 6. **Асинхронная доставка** — запрос ставится в очередь и отправляется в целевую систему с применением политики повторных попыток (`maxRetries`, `backoffMs`).
 
 7. **Фиксация результата** — хаб сохраняет статус доставки (`DELIVERED` / `FAILED`), историю попыток и, в случае неудачи после всех ретраев, переводит событие в dead-letter состояние.
 
 Вся обработка происходит асинхронно: после шага 2 хаб немедленно возвращает системе-источнику ответ `202 Accepted`, не дожидаясь доставки в целевую систему.
+
+#### 5.1. Работа с параметрами запроса
+
+Integration Hub поддерживает работу как со статическими, так и с динамическими параметрами в `incomingPath` и `targetUrl`. Это позволяет гибко маршрутизировать запросы и передавать значения из пути входящего запроса в целевую систему.
+
+##### Типы параметров
+
+**1. Статические параметры**
+
+Параметры с фиксированным значением, указанные непосредственно в `targetUrl`. Они всегда передаются в целевую систему без изменений.
+
+**Пример:**
+targetUrl: https://api.example.com/v1/invoices/1?format=json&version=2
+
+Итоговый URL всегда будет содержать:
+1?format=json&version=2
+
+
+**2. Динамические параметры**
+
+Параметры, значения которых извлекаются из `incomingPath` и подставляются в `targetUrl`. Обозначаются фигурными скобками `{}`.
+
+**Пример:**
+incomingPath: /issues/{id}
+targetUrl: https://api.example.com/tickets/{id}
+
+Запрос: GET /issues/123
+Итоговый URL: https://api.example.com/tickets/123
+
+
+##### Механизм работы с динамическими параметрами
+
+**Шаг 1. Извлечение значений из `incomingPath`**
+
+Хаб анализирует фактический путь входящего запроса и извлекает значения, которые соответствуют динамическим параметрам (обозначенным в фигурных скобках `{}`).
+
+**Пример:**
+Конфигурация интеграции:
+incomingPath: /requests/source/target/issues/{issueId}/statuses/{statusId}
+
+Фактический запрос:
+GET /requests/source/target/issues/123/statuses/456
+
+Извлечённые значения:
+{
+issueId: "123",
+statusId: "456"
+}
+
+**Шаг 2. Поиск переменных в `targetUrl`**
+
+Хаб находит все динамические параметры в `targetUrl` (также обозначенные в фигурных скобках `{}`). Поиск выполняется как в пути, так и в query-параметрах.
+
+**Пример:**
+targetUrl: https://api.example.com/issues/{issueId}/statuses/{statusId}?mode={mode}
+
+Найденные переменные:
+[ "issueId", "statusId", "mode" ]
+
+
+**Шаг 3. Подстановка значений**
+
+Хаб сопоставляет имена переменных из `targetUrl` со значениями, извлечёнными из `incomingPath`, и формирует итоговый URL.
+
+**Пример:**
+Извлечённые значения: { issueId: "123", statusId: "456" }
+targetUrl: https://api.example.com/issues/{issueId}/statuses/{statusId}
+
+Итоговый URL:
+https://api.example.com/issues/123/statuses/456
+
+
+**Шаг 4. Формирование query-параметров**
+
+Механизм динамической подстановки для query-параметров идентичен механизму для параметров пути.
+
+**Пример с динамическим query-параметром:**
+Конфигурация:
+incomingPath: /issues/{id}?mode={mode}
+targetUrl: https://api.example.com/tickets/{id}?status=active&mode={mode}
+
+Фактический запрос:
+GET /issues/123?mode=opened
+
+Извлечённые значения: { id: "123", mode: "opened" }
+
+Итоговый URL:
+https://api.example.com/tickets/123?status=active&mode=opened
+
+
+**Пример с полной подстановкой:**
+Конфигурация:
+incomingPath: /orders/{orderId}?status={status}&source={source}
+targetUrl: https://api.example.com/purchases/{orderId}?mode=test&status={status}
+
+Фактический запрос:
+GET /orders/123?status=completed&source=email
+
+Извлечённые значения: { orderId: "123", status: "completed", source: "email" }
+
+Итоговый URL:
+https://api.example.com/purchases/123?mode=test&status=completed
+
+**Обратите внимание:**
+- Query-параметр `status=completed` из `incomingPath` **подставлен** в `targetUrl`, потому что он там указан как `{status}`
+- Query-параметр `mode=test` из `targetUrl` **сохранён** как статический
 
 
 ## Действующие лица проекта

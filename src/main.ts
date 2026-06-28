@@ -1,4 +1,5 @@
 import SwaggerParser from '@apidevtools/swagger-parser';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import * as path from 'path';
 import * as swaggerUi from 'swagger-ui-express';
@@ -18,6 +19,9 @@ async function bootstrap() {
   } catch (error) {
     console.error('Failed to generate Swagger documentation', error);
   }
+
+  // Подключаем ValidationPipe для валидаций через DTO
+  _app.useGlobalPipes(new ValidationPipe({}));
 
   const port = process.env.APP_PORT || 3000;
   await _app.listen(port);
