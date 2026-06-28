@@ -19,7 +19,6 @@ async function bootstrap() {
     console.error('Failed to generate Swagger documentation', error);
   }
 
-  console.log(process.env.APP_PORT);
   const port = process.env.APP_PORT || 3000;
   await _app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
